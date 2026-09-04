@@ -9,14 +9,6 @@ const requireSupabase = (res) => {
   return true;
 };
 
-const getAuthErrorMessage = (error, fallback) => {
-  if (error.message?.toLowerCase().includes("unsupported phone provider")) {
-    return "Mobile OTP is not enabled yet. Enable a phone provider in Supabase Auth, or use email OTP.";
-  }
-
-  return error.message || fallback;
-};
-
 // ==========================
 // REGISTER
 // ==========================
@@ -98,51 +90,7 @@ const login = async (req, res) => {
   }
 };
 
-const sendOtp = async (req, res) => {
-  try {
-    if (!requireSupabase(res)) return;
-    const { email, phone, name } = req.body;
-    if (!email && !phone) return res.status(400).json({ message: "Email or phone is required" });
-
-    const { error } = await supabase.auth.signInWithOtp({
-      ...(email ? { email: email.toLowerCase() } : { phone }),
-      options: { shouldCreateUser: true, data: name ? { name } : undefined },
-    });
-
-    if (error) throw error;
-    res.json({ message: "OTP sent successfully" });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ message: getAuthErrorMessage(error, "Could not send OTP") });
-  }
-};
-
-const verifyOtp = async (req, res) => {
-  try {
-    if (!requireSupabase(res)) return;
-    const { email, phone, token } = req.body;
-    if ((!email && !phone) || !token) return res.status(400).json({ message: "Contact and OTP are required" });
-
-    const { data, error } = await supabase.auth.verifyOtp({
-      ...(email ? { email: email.toLowerCase(), type: "email" } : { phone, type: "sms" }),
-      token,
-    });
-
-    if (error) throw error;
-    res.json({
-      message: "OTP verified successfully",
-      token: data.session.access_token,
-      user: { id: data.user.id, name: data.user.user_metadata?.name || "", email: data.user.email, phone: data.user.phone },
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ message: getAuthErrorMessage(error, "Invalid OTP") });
-  }
-};
-
 module.exports = {
   register,
   login,
-  sendOtp,
-  verifyOtp,
 };
