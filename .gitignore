@@ -1,10 +1,8 @@
-# Frontend
-client/node_modules/
-client/.env
-client/.env.local
-client/dist/
+Client/node_modules/
+Client/.env
+Client/.env.local
+Client/dist/
 
-# Backend
-server/node_modules/
-server/.env
-server/.env.local
+Server/node_modules/
+Server/.env
+Server/.env.local

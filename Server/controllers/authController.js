@@ -19,6 +19,9 @@ const getAuthErrorMessage = (error, fallback) => {
   return error.message || fallback;
 };
 
+const normalizeEmail = (email) => String(email || "").trim().toLowerCase();
+const normalizeName = (name) => String(name || "").trim();
+
 // ==========================
 // REGISTER
 // ==========================
@@ -26,7 +29,9 @@ const getAuthErrorMessage = (error, fallback) => {
 const register = async (req, res) => {
   try {
     if (!requireSupabase(res)) return;
-    const { name, email, password } = req.body;
+    const { password } = req.body;
+    const name = normalizeName(req.body.name);
+    const email = normalizeEmail(req.body.email);
 
     // Check fields
     if (!name || !email || !password) {
@@ -42,7 +47,7 @@ const register = async (req, res) => {
     }
 
     const { data, error } = await supabase.auth.signUp({
-      email: email.toLowerCase(),
+      email,
       password,
       options: { data: { name } },
     });
@@ -70,7 +75,8 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     if (!requireSupabase(res)) return;
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     // Check fields
     if (!email || !password) {
@@ -80,11 +86,17 @@ const login = async (req, res) => {
     }
 
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.toLowerCase(),
+      email,
       password,
     });
 
     if (error) throw error;
+
+    if (!data.session || !data.user) {
+      return res.status(401).json({
+        message: "Unable to sign in. Please confirm your email and try again.",
+      });
+    }
 
     res.status(200).json({
       message: "Login successful",

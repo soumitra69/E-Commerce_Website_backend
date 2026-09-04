@@ -5,28 +5,61 @@ const cors = require("cors");
 
 const app = express();
 
-const configuredOrigins = (process.env.CLIENT_URL || "")
+const DEFAULT_CLIENT_ORIGINS = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "https://full-stack-ecommerse-website.vercel.app",
+];
+
+const normalizeOrigin = (origin) => {
+  if (!origin) return "";
+
+  const trimmedOrigin = origin.trim();
+
+  try {
+    return new URL(trimmedOrigin).origin;
+  } catch {
+    return trimmedOrigin.replace(/\/$/, "");
+  }
+};
+
+const configuredOrigins = [
+  ...DEFAULT_CLIENT_ORIGINS,
+  ...(process.env.CLIENT_URL || process.env.FRONTEND_URL || "")
   .split(",")
-  .map((origin) => {
-    try {
-      return new URL(origin.trim()).origin;
-    } catch {
-      return origin.trim().replace(/\/$/, "");
-    }
-  })
-  .filter(Boolean);
+  .map(normalizeOrigin),
+].filter(Boolean);
+
+const allowedOrigins = new Set(configuredOrigins);
 
 app.use(cors({
-  origin: configuredOrigins.length ? configuredOrigins : true,
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(normalizeOrigin(origin))) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`Origin ${origin} is not allowed by CORS`));
+  },
 }));
 app.use(express.json());
 
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+    return res.status(400).json({ message: "Invalid JSON body" });
+  }
+
+  if (err.message?.includes("not allowed by CORS")) {
+    return res.status(403).json({ message: "Origin not allowed by CORS" });
+  }
+
+  next(err);
+});
 
 // Test environment variables
-console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
 console.log(
-  "SUPABASE_KEY:",
-  process.env.SUPABASE_KEY ? "Loaded" : "Missing"
+  "Supabase config:",
+  process.env.SUPABASE_URL && process.env.SUPABASE_KEY ? "Loaded" : "Missing"
 );
 
 
