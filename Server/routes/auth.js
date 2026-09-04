@@ -7,6 +7,13 @@ const {
 
 const router = express.Router();
 
+router.get("/", (req, res) => {
+  res.json({
+    message: "Auth API is running",
+    endpoints: ["POST /register", "POST /login"],
+  });
+});
+
 router.post("/register", register);
 
 router.post("/login", login);
