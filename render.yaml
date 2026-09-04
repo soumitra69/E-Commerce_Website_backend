@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: norden-api
+    runtime: node
+    rootDir: Server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: CLIENT_URL
+        sync: false
