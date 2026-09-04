@@ -9,6 +9,14 @@ const requireSupabase = (res) => {
   return true;
 };
 
+const getAuthErrorMessage = (error, fallback) => {
+  if (error.message?.toLowerCase().includes("unsupported phone provider")) {
+    return "Mobile OTP is not enabled yet. Enable a phone provider in Supabase Auth, or use email OTP.";
+  }
+
+  return error.message || fallback;
+};
+
 // ==========================
 // REGISTER
 // ==========================
@@ -105,7 +113,7 @@ const sendOtp = async (req, res) => {
     res.json({ message: "OTP sent successfully" });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ message: error.message || "Could not send OTP" });
+    res.status(400).json({ message: getAuthErrorMessage(error, "Could not send OTP") });
   }
 };
 
@@ -128,7 +136,7 @@ const verifyOtp = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ message: error.message || "Invalid OTP" });
+    res.status(400).json({ message: getAuthErrorMessage(error, "Invalid OTP") });
   }
 };
 
