@@ -5,12 +5,14 @@ const cors = require("cors");
 
 const app = express();
 
-const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:3000")
+const configuredOrigins = (process.env.CLIENT_URL || "")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-app.use(cors({ origin: allowedOrigins }));
+app.use(cors({
+  origin: configuredOrigins.length ? configuredOrigins : true,
+}));
 app.use(express.json());
 
 
