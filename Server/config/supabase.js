@@ -12,4 +12,14 @@ const supabase = hasSupabaseConfig
   ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
   : null;
 
+const supabaseAdmin = hasSupabaseConfig && process.env.SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+  : null;
+
+if (supabase) {
+  supabase.admin = supabaseAdmin;
+}
+
 module.exports = supabase;

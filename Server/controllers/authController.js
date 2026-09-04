@@ -1,4 +1,5 @@
 const supabase = require("../config/supabase");
+const supabaseAdmin = supabase?.admin || null;
 
 const requireSupabase = (res) => {
   if (!supabase) {
@@ -46,16 +47,38 @@ const register = async (req, res) => {
       });
     }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name } },
-    });
+    let data;
+    let error;
+
+    if (supabaseAdmin) {
+      const result = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { name },
+      });
+      data = { user: result.data.user, session: null };
+      error = result.error;
+    } else {
+      const result = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name } },
+      });
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) throw error;
 
+    if (supabaseAdmin) {
+      const loginResult = await supabase.auth.signInWithPassword({ email, password });
+      if (loginResult.error) throw loginResult.error;
+      data.session = loginResult.data.session;
+    }
+
     res.status(201).json({
-      message: data.session ? "Registration successful" : "Check your email to confirm your account",
+      message: "Registration successful",
       token: data.session?.access_token || null,
       user: data.user ? { id: data.user.id, name, email: data.user.email } : null,
     });
