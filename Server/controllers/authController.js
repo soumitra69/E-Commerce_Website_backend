@@ -1,11 +1,21 @@
 const supabase = require("../config/supabase");
 
+const requireSupabase = (res) => {
+  if (!supabase) {
+    res.status(503).json({ message: "Supabase environment variables are not configured" });
+    return false;
+  }
+
+  return true;
+};
+
 // ==========================
 // REGISTER
 // ==========================
 
 const register = async (req, res) => {
   try {
+    if (!requireSupabase(res)) return;
     const { name, email, password } = req.body;
 
     // Check fields
@@ -49,6 +59,7 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
+    if (!requireSupabase(res)) return;
     const { email, password } = req.body;
 
     // Check fields
@@ -81,6 +92,7 @@ const login = async (req, res) => {
 
 const sendOtp = async (req, res) => {
   try {
+    if (!requireSupabase(res)) return;
     const { email, phone, name } = req.body;
     if (!email && !phone) return res.status(400).json({ message: "Email or phone is required" });
 
@@ -99,6 +111,7 @@ const sendOtp = async (req, res) => {
 
 const verifyOtp = async (req, res) => {
   try {
+    if (!requireSupabase(res)) return;
     const { email, phone, token } = req.body;
     if ((!email && !phone) || !token) return res.status(400).json({ message: "Contact and OTP are required" });
 
