@@ -19,8 +19,10 @@ console.log(
 
 // Routes
 const productRoutes = require("./routes/productRoutes");
+const authRoutes = require("./routes/auth");
 
 app.use("/api/products", productRoutes);
+app.use("/api/auth", authRoutes);
 
 
 app.get("/", (req, res) => {
