@@ -47,8 +47,8 @@ const register = async (req, res) => {
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
-      message: "Server error",
+    res.status(error.status || 400).json({
+      message: error.message || "Registration failed",
     });
   }
 };
@@ -84,8 +84,8 @@ const login = async (req, res) => {
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
-      message: "Server error",
+    res.status(error.status === 500 ? 500 : 401).json({
+      message: error.message || "Invalid email or password",
     });
   }
 };
