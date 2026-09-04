@@ -9,6 +9,16 @@ const requireSupabase = (res) => {
   return true;
 };
 
+const getAuthErrorMessage = (error, fallback) => {
+  const message = error.message?.toLowerCase() || "";
+
+  if (message.includes("rate limit") || message.includes("email rate limit")) {
+    return "Email limit reached. Please wait a few minutes before trying again, or check your inbox for the existing confirmation email.";
+  }
+
+  return error.message || fallback;
+};
+
 // ==========================
 // REGISTER
 // ==========================
@@ -48,7 +58,7 @@ const register = async (req, res) => {
     console.error(error);
 
     res.status(error.status || 400).json({
-      message: error.message || "Registration failed",
+      message: getAuthErrorMessage(error, "Registration failed"),
     });
   }
 };
