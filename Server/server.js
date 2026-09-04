@@ -7,7 +7,13 @@ const app = express();
 
 const configuredOrigins = (process.env.CLIENT_URL || "")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => {
+    try {
+      return new URL(origin.trim()).origin;
+    } catch {
+      return origin.trim().replace(/\/$/, "");
+    }
+  })
   .filter(Boolean);
 
 app.use(cors({
