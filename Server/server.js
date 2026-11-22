@@ -66,6 +66,7 @@ console.log(
 // Routes
 const productRoutes = require("./routes/productRoutes");
 const authRoutes = require("./routes/auth");
+const { initDailyDatabaseJob, performDailyDbPing } = require("./config/dailyJob");
 
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
@@ -81,9 +82,20 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+// Endpoint to manually or via external cron trigger the daily DB ping
+app.get("/api/cron/daily-ping", async (req, res) => {
+  const result = await performDailyDbPing();
+  res.json({
+    message: "Daily DB ping executed",
+    result,
+  });
+});
+
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
+  // Start the background daily database task
+  initDailyDatabaseJob();
 });
